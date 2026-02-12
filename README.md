@@ -1,59 +1,72 @@
 # Taskboard
 
-Vite-based multi-page-ready app scaffold with modular page and component structure.
+Taskboard is a Trello-style project and task management app built with Vanilla JS, Bootstrap, and Supabase.
 
-## Available routes
+## Current routes
 
-- `/` -> index page
-- `/dashboard` -> dashboard page
-- `/login` -> login page
-- `/register` -> register page
+- `/` → landing page
+- `/dashboard` → authenticated dashboard
+- `/login` → login page (guest only)
+- `/register` → registration page (guest only)
+- `/projects` → project list (authenticated)
+- `/projects/add` → create project (authenticated)
+- `/projects/edit?id={projectId}` → edit project (authenticated)
 
-## Supabase setup
+## Tech stack
 
-Create a `.env` file with:
+- Frontend: Vanilla JS (ES modules), Bootstrap, Vite
+- Backend/Auth/DB: Supabase + PostgreSQL + Supabase Auth
+- Deployment: Netlify (SPA redirect configured in `netlify.toml`)
 
-```
-VITE_SUPABASE_URL=your_project_url
-VITE_SUPABASE_ANON_KEY=your_anon_key
+## Environment setup
+
+Create either `.env` or `.env.local` in the project root:
+
+```bash
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 ## Commands
 
-- `npm install` - Install dependencies
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run seed` - Seed database with sample data (see [scripts/README.md](scripts/README.md))
+- `npm install` — install dependencies
+- `npm run dev` — start development server
+- `npm run build` — build for production
+- `npm run preview` — preview production build
+- `npm run seed` — seed sample users/projects/stages/tasks
 
-## Database Setup
+## Database setup
 
-### 1. Apply Migrations
+### 1) Apply migration
 
-Apply the database schema migration in your Supabase project:
+Run the SQL from:
 
-```sql
--- Run the migration file: supabase/migrations/20260212120000_initial_schema.sql
--- in the Supabase SQL Editor
-```
-
-### 2. Seed Sample Data (Optional)
-
-To populate the database with sample users, projects, and tasks:
-
-1. Add `SUPABASE_SERVICE_ROLE_KEY` to your `.env` file (get it from Supabase Dashboard > Settings > API)
-2. Run: `npm run seed`
+- `supabase/migrations/20260212120000_initial_schema.sql`
 
 This creates:
-- 3 sample users (steve@gmail.com, maria@gmail.com, peter@gmail.com - password: pass123)
-- 4 sample projects
-- Default stages (Not Started, In Progress, Done) for each project
-- 10-12 tasks per project
 
-See [scripts/README.md](scripts/README.md) for detailed instructions.
+- `projects`
+- `project_stages`
+- `tasks`
+- RLS policies for owner-scoped access
 
-## Structure
+### 2) Seed sample data (optional)
 
-- `src/pages/*` for page modules (`html`, `css`, `js`)
-- `src/components/*` for reusable UI components (`html`, `css`, `js`)
-- `src/router.js` for path navigation
+Run:
+
+```bash
+npm run seed
+```
+
+The seed script creates/reuses 3 sample users, 4 projects, default stages, and sample tasks.
+
+Detailed seed docs: [supabase/seed-data/README.md](supabase/seed-data/README.md)
+
+## Project structure
+
+- `src/pages/*` — page modules (`html`, `css`, `js`)
+- `src/components/*` — reusable UI modules
+- `src/router.js` — client-side route handling + auth guards
+- `src/lib/supabaseClient.js` — Supabase client initialization
+- `supabase/migrations/*` — SQL migrations
+- `supabase/seed-data/*` — database seed scripts and docs
