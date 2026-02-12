@@ -1,0 +1,31 @@
+<section class="auth-card card shadow-sm border-0">
+  <div class="card-body p-4 p-md-5">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+      <div>
+        <h1 class="h3 mb-1">Welcome back</h1>
+        <p class="text-body-secondary mb-0">Log in to access your boards.</p>
+      </div>
+      <span class="badge bg-primary-subtle text-primary">Login</span>
+    </div>
+
+    <form id="login-form" class="auth-form" novalidate>
+      <div class="mb-3">
+        <label class="form-label" for="login-email">Email</label>
+        <input class="form-control" type="email" id="login-email" autocomplete="email" required />
+      </div>
+      <div class="mb-3">
+        <label class="form-label" for="login-password">Password</label>
+        <input class="form-control" type="password" id="login-password" autocomplete="current-password" required />
+      </div>
+
+      <div class="alert alert-danger d-none" role="alert" id="login-error"></div>
+      <div class="alert alert-success d-none" role="alert" id="login-success"></div>
+
+      <button class="btn btn-primary w-100" type="submit" id="login-submit">Login</button>
+    </form>
+
+    <div class="auth-footer text-body-secondary mt-3">
+      New here? <a href="/register" data-link>Register an account</a>.
+    </div>
+  </div>
+</section>

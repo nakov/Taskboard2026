@@ -1,3 +1,29 @@
-.card {
-  border-radius: 0.75rem;
+.index-hero {
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.08), rgba(13, 110, 253, 0));
+}
+
+.index-cta .btn {
+  min-width: 160px;
+}
+
+.index-note {
+  font-size: 0.95rem;
+}
+
+.index-features {
+  margin-top: 2rem;
+}
+
+.index-feature {
+  border-radius: 0.9rem;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 12px 30px rgba(33, 37, 41, 0.08);
+}
+
+@media (max-width: 576px) {
+  .index-cta .btn {
+    width: 100%;
+  }
 }

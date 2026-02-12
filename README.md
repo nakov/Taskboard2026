@@ -6,6 +6,17 @@ Vite-based multi-page-ready app scaffold with modular page and component structu
 
 - `/` -> index page
 - `/dashboard` -> dashboard page
+- `/login` -> login page
+- `/register` -> register page
+
+## Supabase setup
+
+Create a `.env` file with:
+
+```
+VITE_SUPABASE_URL=your_project_url
+VITE_SUPABASE_ANON_KEY=your_anon_key
+```
 
 ## Commands
 

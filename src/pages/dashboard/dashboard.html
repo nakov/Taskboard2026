@@ -1,8 +1,65 @@
 <section class="card shadow-sm border-0">
   <div class="card-body p-4 p-md-5">
-    <h1 class="h3 mb-3">Dashboard</h1>
-    <p class="mb-0 text-body-secondary">
-      This is the dashboard page mapped to <strong>/dashboard</strong>.
-    </p>
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+      <div>
+        <h1 class="h3 mb-1">Dashboard</h1>
+        <p class="mb-0 text-body-secondary">Overview of your projects and tasks</p>
+      </div>
+      <button class="btn btn-outline-secondary" type="button" data-logout>Logout</button>
+    </div>
+    
+    <div class="alert alert-light border d-flex flex-column gap-1 mb-4" role="status">
+      <span class="text-uppercase small text-body-secondary">Signed in as</span>
+      <strong data-user-email>Loading...</strong>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="card bg-primary bg-opacity-10 border-primary border-opacity-25">
+          <div class="card-body text-center">
+            <div class="display-6 fw-bold text-primary" data-stat-projects>-</div>
+            <div class="text-body-secondary small">Projects</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card bg-info bg-opacity-10 border-info border-opacity-25">
+          <div class="card-body text-center">
+            <div class="display-6 fw-bold text-info" data-stat-tasks-total>-</div>
+            <div class="text-body-secondary small">Total Tasks</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card bg-warning bg-opacity-10 border-warning border-opacity-25">
+          <div class="card-body text-center">
+            <div class="display-6 fw-bold text-warning" data-stat-tasks-pending>-</div>
+            <div class="text-body-secondary small">Pending</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card bg-success bg-opacity-10 border-success border-opacity-25">
+          <div class="card-body text-center">
+            <div class="display-6 fw-bold text-success" data-stat-tasks-done>-</div>
+            <div class="text-body-secondary small">Done</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Projects List -->
+    <div>
+      <h2 class="h5 mb-3">Your Projects</h2>
+      <div data-projects-list>
+        <div class="text-center py-4 text-body-secondary">
+          <div class="spinner-border spinner-border-sm" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="mt-2">Loading projects...</div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>

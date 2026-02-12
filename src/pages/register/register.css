@@ -1,0 +1,12 @@
+.auth-card {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.auth-form .form-control {
+  min-height: 44px;
+}
+
+.auth-footer {
+  font-size: 0.95rem;
+}
