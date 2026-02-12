@@ -143,7 +143,7 @@ function renderProjectsTable(projects, currentUserId) {
 }
 
 function showDeleteConfirmation(project) {
-	const modal = new (window.bootstrap ? window.bootstrap.Modal : BootstrapModal)(
+	const modal = new window.bootstrap.Modal(
 		document.getElementById('deleteConfirmModal')
 	);
 
@@ -203,8 +203,5 @@ function formatDate(dateString) {
 }
 
 function setupDeleteConfirmation() {
-	// Ensure Bootstrap Modal is available
-	if (typeof window.bootstrap === 'undefined') {
-		console.warn('Bootstrap not loaded');
-	}
+	// Bootstrap Modal is now available on window.bootstrap
 }

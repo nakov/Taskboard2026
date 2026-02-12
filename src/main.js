@@ -1,6 +1,9 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import * as bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
+// Expose Bootstrap to window for components that need it
+window.bootstrap = bootstrap;
 
 import './styles/app.css';
 import './components/header/header.css';
