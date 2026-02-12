@@ -38,10 +38,7 @@ async function loadProjects() {
 		// Fetch projects for current user
 		const { data: projects, error } = await supabase
 			.from('projects')
-			.select('id, title, description, owner_id, created_at, updated_at')
-			.order('created_at', { ascending: false });
-
-		if (error) throw error;
+		.select('id, title, description, owner_id, created_at')
 
 		if (!projects || projects.length === 0) {
 			container.innerHTML = `
