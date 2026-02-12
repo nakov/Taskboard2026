@@ -4,6 +4,7 @@ import { renderIndexPage } from './pages/index/index';
 import { renderDashboardPage, initDashboardPage } from './pages/dashboard/dashboard';
 import { renderLoginPage, initLoginPage } from './pages/login/login';
 import { renderRegisterPage, initRegisterPage } from './pages/register/register';
+import { renderNotFoundPage } from './pages/notfound/notfound';
 import { supabase } from './lib/supabaseClient';
 
 const routes = {
@@ -62,8 +63,21 @@ const navigateTo = async (appElement, path, { replace = false } = {}) => {
 };
 
 const renderLayout = async (appElement, path) => {
-  const route = routes[path] ?? routes['/'];
+  const route = routes[path];
   const session = await getSession();
+
+  // Handle 404 - unknown route
+  if (!route) {
+    document.title = 'Taskboard | 404 Not Found';
+    appElement.innerHTML = `
+      ${renderHeader(path, session)}
+      <main class="container py-4" id="route-content">
+        ${renderNotFoundPage()}
+      </main>
+      ${renderFooter()}
+    `;
+    return;
+  }
 
   if (route.requiresAuth && !session) {
     await navigateTo(appElement, '/login', { replace: true });

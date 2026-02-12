@@ -1,0 +1,31 @@
+.not-found-container {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+}
+
+.not-found-content {
+  max-width: 600px;
+}
+
+.not-found-content .display-1 {
+  font-size: 8rem;
+  line-height: 1;
+  margin-bottom: 1rem;
+}
+
+.not-found-content h2 {
+  color: var(--bs-secondary);
+}
+
+.not-found-content .lead {
+  color: var(--bs-secondary);
+}
+
+@media (max-width: 768px) {
+  .not-found-content .display-1 {
+    font-size: 5rem;
+  }
+}
