@@ -1,0 +1,18 @@
+:root {
+  color-scheme: light;
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--bs-light);
+}
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
