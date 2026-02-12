@@ -1,0 +1,57 @@
+<section class="card shadow-sm border-0">
+  <div class="card-body p-4 p-md-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+      <div>
+        <h1 class="h3 mb-1">Edit Project</h1>
+        <p class="mb-0 text-body-secondary">Update project details</p>
+      </div>
+    </div>
+
+    <form id="edit-project-form" class="form-column">
+      <div id="edit-loading" class="d-flex justify-content-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+
+      <div id="edit-form-content" class="d-none">
+        <div class="mb-3">
+          <label for="project-title" class="form-label">Project Title *</label>
+          <input 
+            type="text" 
+            class="form-control" 
+            id="project-title" 
+            placeholder="Enter project title"
+            required
+            autocomplete="off">
+          <small class="form-text text-body-secondary">Max 255 characters</small>
+        </div>
+
+        <div class="mb-4">
+          <label for="project-description" class="form-label">Description</label>
+          <textarea 
+            class="form-control" 
+            id="project-description" 
+            rows="4"
+            placeholder="Enter project description (optional)"
+            autocomplete="off"></textarea>
+          <small class="form-text text-body-secondary">Provide additional context about this project</small>
+        </div>
+
+        <div id="edit-project-error" class="alert alert-danger d-none" role="alert"></div>
+        <div id="edit-project-success" class="alert alert-success d-none" role="alert"></div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary" id="edit-submit-btn">
+            <i class="bi bi-check-circle"></i> Update Project
+          </button>
+          <a href="/projects" class="btn btn-secondary" data-link>
+            <i class="bi bi-x-circle"></i> Cancel
+          </a>
+        </div>
+      </div>
+
+      <div id="edit-error-message" class="alert alert-danger d-none" role="alert"></div>
+    </form>
+  </div>
+</section>

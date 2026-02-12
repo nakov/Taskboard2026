@@ -37,6 +37,7 @@ Use modular code structure, with separate files for different components, pages 
   - Use Supabase Storage for file uploads (e.g. task attachments).
   - When changing the DB schema, always use migrations to keep track of changes.
   - After applying a migration in Supabase, keep a copy of the migration SQL file in the code.
+  - Never edit existing migrations after they have been applied --> create a new migration for any changes to the DB schema.
 
 ## Authentication and Authorization
   - Use Supabase Auth for user authentication and authorization.

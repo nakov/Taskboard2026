@@ -4,6 +4,9 @@ import { renderIndexPage } from './pages/index/index';
 import { renderDashboardPage, initDashboardPage } from './pages/dashboard/dashboard';
 import { renderLoginPage, initLoginPage } from './pages/login/login';
 import { renderRegisterPage, initRegisterPage } from './pages/register/register';
+import { renderProjectsPage, initProjectsPage } from './pages/projects/projects';
+import { renderAddProjectPage, initAddProjectPage } from './pages/projects/add/add';
+import { renderEditProjectPage, initEditProjectPage } from './pages/projects/edit/edit';
 import { renderNotFoundPage } from './pages/notfound/notfound';
 import { supabase } from './lib/supabaseClient';
 
@@ -29,6 +32,24 @@ const routes = {
     render: renderRegisterPage,
     init: initRegisterPage,
     requiresGuest: true
+  },
+  '/projects': {
+    title: 'Taskboard | Projects',
+    render: renderProjectsPage,
+    init: initProjectsPage,
+    requiresAuth: true
+  },
+  '/projects/add': {
+    title: 'Taskboard | Create Project',
+    render: renderAddProjectPage,
+    init: initAddProjectPage,
+    requiresAuth: true
+  },
+  '/projects/edit': {
+    title: 'Taskboard | Edit Project',
+    render: renderEditProjectPage,
+    init: initEditProjectPage,
+    requiresAuth: true
   }
 };
 
