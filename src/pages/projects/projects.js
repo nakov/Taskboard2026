@@ -171,11 +171,25 @@ async function deleteProject(projectId) {
 
 		if (error) throw error;
 
+		// Show success toast
+		showSuccessToast();
+
 		// Reload projects
 		await loadProjects();
 	} catch (error) {
 		console.error('Error deleting project:', error);
 		alert('Failed to delete project');
+	}
+}
+
+function showSuccessToast() {
+	const toastElement = document.getElementById('deleteSuccessToast');
+	if (toastElement) {
+		const toast = new window.bootstrap.Toast(toastElement, {
+			autohide: true,
+			delay: 3000
+		});
+		toast.show();
 	}
 }
 

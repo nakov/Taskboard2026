@@ -84,14 +84,16 @@ const navigateTo = async (appElement, path, { replace = false } = {}) => {
 };
 
 const renderLayout = async (appElement, path) => {
-  const route = routes[path];
+  // Strip query string from path for route matching
+  const pathWithoutQuery = path.split('?')[0];
+  const route = routes[pathWithoutQuery];
   const session = await getSession();
 
   // Handle 404 - unknown route
   if (!route) {
     document.title = 'Taskboard | 404 Not Found';
     appElement.innerHTML = `
-      ${renderHeader(path, session)}
+      ${renderHeader(pathWithoutQuery, session)}
       <main class="container py-4" id="route-content">
         ${renderNotFoundPage()}
       </main>
@@ -113,7 +115,7 @@ const renderLayout = async (appElement, path) => {
   document.title = route.title;
 
   appElement.innerHTML = `
-    ${renderHeader(path, session)}
+    ${renderHeader(pathWithoutQuery, session)}
     <main class="container py-4" id="route-content">
       ${route.render()}
     </main>
@@ -153,10 +155,12 @@ const handleLinkNavigation = async (event, appElement) => {
 };
 
 export const initRouter = (appElement) => {
-  void renderLayout(appElement, resolvePath(window.location.pathname));
+  const currentPath = window.location.pathname + window.location.search;
+  void renderLayout(appElement, resolvePath(currentPath));
 
   window.addEventListener('popstate', () => {
-    void renderLayout(appElement, resolvePath(window.location.pathname));
+    const currentPath = window.location.pathname + window.location.search;
+    void renderLayout(appElement, resolvePath(currentPath));
   });
 
   document.addEventListener('click', (event) => {
