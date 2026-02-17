@@ -23,6 +23,12 @@
   height: fit-content;
   min-height: 500px;
   border: 1px solid #e9ecef;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.taskboard-stage.drag-over {
+  border-color: var(--bs-primary);
+  background-color: var(--bs-primary-bg-subtle);
 }
 
 .taskboard-stage-header {
@@ -115,6 +121,7 @@
 
 .task-card.dragging {
   opacity: 0.5;
+  transform: rotate(1deg);
 }
 
 .task-title {

@@ -9,7 +9,10 @@ const state = {
 	taskModal: null,
 	deleteModal: null,
 	pendingDeleteTaskId: null,
-	handlersBound: false
+	handlersBound: false,
+	draggedTaskId: null,
+	suppressCardClick: false,
+	isPersistingDrag: false
 };
 
 const redirectTo = (path, { replace = false } = {}) => {
@@ -34,6 +37,9 @@ export const initTaskboardPage = async (projectId) => {
 	state.handlersBound = false;
 	state.taskModal = null;
 	state.deleteModal = null;
+	state.draggedTaskId = null;
+	state.suppressCardClick = false;
+	state.isPersistingDrag = false;
 
 	const { data } = await supabase.auth.getSession();
 	if (!data?.session) {
@@ -126,7 +132,7 @@ async function loadTaskboard(projectId) {
 function renderStage(stage, tasks) {
 	const tasksHtml = tasks.length > 0
 		? tasks.map(task => `
-			<div class="task-card" data-task-id="${task.id}">
+			<div class="task-card" data-task-id="${task.id}" draggable="true">
 				<div class="task-card-actions">
 					<button class="btn btn-light border task-action-btn" type="button" data-action="edit-task" data-task-id="${task.id}" aria-label="Edit task" title="Edit">
 						<i class="bi bi-pencil"></i>
@@ -174,6 +180,11 @@ function setupTaskInteractions() {
 	state.deleteModal = new window.bootstrap.Modal(document.getElementById('delete-task-modal'));
 
 	board.addEventListener('click', handleBoardClick);
+	board.addEventListener('dragstart', handleDragStart);
+	board.addEventListener('dragover', handleDragOver);
+	board.addEventListener('dragleave', handleDragLeave);
+	board.addEventListener('drop', handleDrop);
+	board.addEventListener('dragend', handleDragEnd);
 	taskForm.addEventListener('submit', handleTaskSubmit);
 	deleteConfirmButton.addEventListener('click', handleTaskDeleteConfirm);
 
@@ -183,6 +194,10 @@ function setupTaskInteractions() {
 function handleBoardClick(event) {
 	const target = event.target;
 	if (!(target instanceof Element)) {
+		return;
+	}
+
+	if (state.suppressCardClick && target.closest('.task-card[data-task-id]')) {
 		return;
 	}
 
@@ -219,6 +234,229 @@ function handleBoardClick(event) {
 		if (taskId) {
 			openTaskModal({ taskId });
 		}
+	}
+}
+
+function handleDragStart(event) {
+	const target = event.target;
+	if (!(target instanceof Element)) {
+		return;
+	}
+
+	const card = target.closest('.task-card[data-task-id]');
+	if (!card) {
+		return;
+	}
+
+	state.draggedTaskId = card.getAttribute('data-task-id');
+	state.suppressCardClick = true;
+	card.classList.add('dragging');
+
+	if (event.dataTransfer) {
+		event.dataTransfer.effectAllowed = 'move';
+		event.dataTransfer.setData('text/plain', state.draggedTaskId ?? '');
+	}
+}
+
+function handleDragOver(event) {
+	if (!state.draggedTaskId || state.isPersistingDrag) {
+		return;
+	}
+
+	const target = event.target;
+	if (!(target instanceof Element)) {
+		return;
+	}
+
+	const stage = target.closest('.taskboard-stage');
+	const taskContainer = getTaskContainerFromElement(target);
+	if (!stage || !taskContainer) {
+		return;
+	}
+
+	event.preventDefault();
+	if (event.dataTransfer) {
+		event.dataTransfer.dropEffect = 'move';
+	}
+
+	highlightDropStage(stage);
+	clearEmptyState(taskContainer);
+
+	const draggingCard = document.querySelector(`.task-card[data-task-id="${state.draggedTaskId}"]`);
+	if (!draggingCard) {
+		return;
+	}
+
+	const afterElement = getTaskInsertReference(taskContainer, event.clientY);
+	const createTaskButton = taskContainer.querySelector('.taskboard-create-task');
+
+	if (afterElement) {
+		taskContainer.insertBefore(draggingCard, afterElement);
+	} else if (createTaskButton) {
+		taskContainer.insertBefore(draggingCard, createTaskButton);
+	} else {
+		taskContainer.appendChild(draggingCard);
+	}
+}
+
+function handleDragLeave(event) {
+	const target = event.target;
+	if (!(target instanceof Element)) {
+		return;
+	}
+
+	const stage = target.closest('.taskboard-stage');
+	if (!stage || stage.contains(event.relatedTarget)) {
+		return;
+	}
+
+	stage.classList.remove('drag-over');
+}
+
+async function handleDrop(event) {
+	if (!state.draggedTaskId || state.isPersistingDrag || !state.projectId) {
+		return;
+	}
+
+	const target = event.target;
+	if (!(target instanceof Element)) {
+		return;
+	}
+
+	const stage = target.closest('.taskboard-stage');
+	const taskContainer = getTaskContainerFromElement(target);
+	if (!stage || !taskContainer) {
+		return;
+	}
+
+	event.preventDefault();
+
+	try {
+		state.isPersistingDrag = true;
+		await persistTaskOrderFromDom();
+		await loadTaskboard(state.projectId);
+	} catch (error) {
+		console.error('Error moving task:', error);
+		window.alert('Failed to move task. Please try again.');
+		await loadTaskboard(state.projectId);
+	} finally {
+		state.isPersistingDrag = false;
+		clearDragVisuals();
+	}
+}
+
+function handleDragEnd() {
+	clearDragVisuals();
+	window.setTimeout(() => {
+		state.suppressCardClick = false;
+	}, 0);
+}
+
+function getTaskContainerFromElement(element) {
+	const directContainer = element.closest('.taskboard-tasks');
+	if (directContainer) {
+		return directContainer;
+	}
+
+	const stage = element.closest('.taskboard-stage');
+	if (!stage) {
+		return null;
+	}
+
+	return stage.querySelector('.taskboard-tasks');
+}
+
+function getTaskInsertReference(container, cursorY) {
+	const cards = Array.from(container.querySelectorAll('.task-card:not(.dragging)'));
+	let closestOffset = Number.NEGATIVE_INFINITY;
+	let closestElement = null;
+
+	for (const card of cards) {
+		const box = card.getBoundingClientRect();
+		const offset = cursorY - box.top - box.height / 2;
+		if (offset < 0 && offset > closestOffset) {
+			closestOffset = offset;
+			closestElement = card;
+		}
+	}
+
+	return closestElement;
+}
+
+function highlightDropStage(activeStage) {
+	const stages = document.querySelectorAll('.taskboard-stage');
+	for (const stage of stages) {
+		stage.classList.toggle('drag-over', stage === activeStage);
+	}
+}
+
+function clearEmptyState(container) {
+	const emptyState = container.querySelector('.empty-state');
+	if (emptyState) {
+		emptyState.remove();
+	}
+}
+
+function clearDragVisuals() {
+	state.draggedTaskId = null;
+	const draggingCards = document.querySelectorAll('.task-card.dragging');
+	for (const card of draggingCards) {
+		card.classList.remove('dragging');
+	}
+
+	const stages = document.querySelectorAll('.taskboard-stage.drag-over');
+	for (const stage of stages) {
+		stage.classList.remove('drag-over');
+	}
+}
+
+async function persistTaskOrderFromDom() {
+	const stageElements = document.querySelectorAll('.taskboard-stage[data-stage-id]');
+	if (stageElements.length === 0) {
+		return;
+	}
+
+	const taskById = new Map(state.tasks.map(task => [task.id, task]));
+	const updates = [];
+
+	for (const stageElement of stageElements) {
+		const stageId = stageElement.getAttribute('data-stage-id');
+		const cards = stageElement.querySelectorAll('.task-card[data-task-id]');
+
+		cards.forEach((card, index) => {
+			const taskId = card.getAttribute('data-task-id');
+			if (!taskId || !stageId) {
+				return;
+			}
+
+			const task = taskById.get(taskId);
+			if (!task) {
+				return;
+			}
+
+			if (task.stage_id !== stageId || task.position !== index) {
+				updates.push({ taskId, stageId, position: index });
+			}
+		});
+	}
+
+	if (updates.length === 0) {
+		return;
+	}
+
+	const results = await Promise.all(
+		updates.map(({ taskId, stageId, position }) =>
+			supabase
+				.from('tasks')
+				.update({ stage_id: stageId, position })
+				.eq('id', taskId)
+				.eq('project_id', state.projectId)
+		)
+	);
+
+	const failedUpdate = results.find(result => result.error);
+	if (failedUpdate?.error) {
+		throw failedUpdate.error;
 	}
 }
 
