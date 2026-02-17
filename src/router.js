@@ -45,14 +45,25 @@ const routes = {
     render: renderAddProjectPage,
     init: initAddProjectPage,
     requiresAuth: true
-  },
-  '/projects/edit': {
-    title: 'Taskboard | Edit Project',
-    render: renderEditProjectPage,
-    init: initEditProjectPage,
-    requiresAuth: true
   }
 };
+
+const dynamicRoutes = [
+  {
+    pattern: '/projects/:id/edit',
+    title: 'Taskboard | Edit Project',
+    render: renderEditProjectPage,
+    init: (session, params) => initEditProjectPage(session, params.id),
+    requiresAuth: true
+  },
+  {
+    pattern: '/projects/:id',
+    title: 'Taskboard | Project',
+    render: renderTaskboardPage,
+    init: (session, params) => initTaskboardPage(params.id),
+    requiresAuth: true
+  }
+];
 
 const resolvePath = (path) => {
   if (path === '') {
@@ -84,19 +95,34 @@ const navigateTo = async (appElement, path, { replace = false } = {}) => {
   await renderLayout(appElement, normalizedPath);
 };
 
+const matchPattern = (pattern, path) => {
+  const paramNames = [];
+  const regexPattern = pattern.replace(/:([^/]+)/g, (_, paramName) => {
+    paramNames.push(paramName);
+    return '([^/]+)';
+  });
+
+  const regex = new RegExp(`^${regexPattern}$`);
+  const match = path.match(regex);
+
+  if (!match) {
+    return null;
+  }
+
+  const params = {};
+  paramNames.forEach((name, index) => {
+    params[name] = match[index + 1];
+  });
+
+  return params;
+};
+
 const matchDynamicRoute = (path) => {
-  // Match /projects/:id pattern
-  const projectIdMatch = path.match(/^\/projects\/([a-f0-9\-]+)$/);
-  if (projectIdMatch) {
-    return {
-      route: {
-        title: 'Taskboard | Project',
-        render: renderTaskboardPage,
-        init: (session, projectId) => initTaskboardPage(projectId),
-        requiresAuth: true
-      },
-      params: { projectId: projectIdMatch[1] }
-    };
+  for (const route of dynamicRoutes) {
+    const params = matchPattern(route.pattern, path);
+    if (params) {
+      return { route, params };
+    }
   }
 
   return null;
@@ -152,9 +178,9 @@ const renderLayout = async (appElement, path) => {
   `;
 
   if (route.init) {
-    // For dynamic routes, pass the params to the init function
-    if (params.projectId) {
-      await route.init(session, params.projectId);
+    // For dynamic routes, pass the params object to the init function
+    if (Object.keys(params).length > 0) {
+      await route.init(session, params);
     } else {
       await route.init(session);
     }

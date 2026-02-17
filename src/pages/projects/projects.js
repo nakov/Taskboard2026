@@ -142,7 +142,7 @@ function renderProjectsTable(projects, currentUserId) {
 									   data-link>
 										<i class="bi bi-eye"></i>
 									</a>
-									<a href="/projects/edit?id=${project.id}" 
+								<a href="/projects/${project.id}/edit" 
 									   class="btn btn-outline-secondary" 
 									   title="Edit project"
 									   data-link>

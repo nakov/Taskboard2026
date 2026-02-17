@@ -12,29 +12,22 @@ const redirectTo = (path, { replace = false } = {}) => {
 	window.dispatchEvent(new PopStateEvent('popstate'));
 };
 
-const getQueryParam = (param) => {
-	const params = new URLSearchParams(window.location.search);
-	return params.get(param);
-};
-
 export const renderEditProjectPage = () => {
 	return `<style>${editStyles}</style>${editTemplate}`;
 };
 
-export const initEditProjectPage = async () => {
-	const { data } = await supabase.auth.getSession();
-	if (!data?.session) {
+export const initEditProjectPage = async (session, projectId) => {
+	if (!session) {
 		redirectTo('/login', { replace: true });
 		return;
 	}
 
-	const projectId = getQueryParam('id');
 	if (!projectId) {
 		showErrorMessage('Project ID not provided');
 		return;
 	}
 
-	await loadProject(projectId, data.session.user.id);
+	await loadProject(projectId, session.user.id);
 };
 
 async function loadProject(projectId, userId) {
