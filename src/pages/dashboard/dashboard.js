@@ -99,29 +99,47 @@ function renderProjectsList(projects) {
 	}
 
 	container.innerHTML = `
-		<div class="list-group">
+		<div class="row g-3">
 			${projects.map(project => `
-				<a href="/projects/${project.id}" 
-				   class="list-group-item list-group-item-action"
-				   data-project-link="${project.id}">
-					<div class="d-flex w-100 justify-content-between align-items-start">
-						<div>
-							<h5 class="mb-1">${escapeHtml(project.title)}</h5>
-							${project.description ? `<p class="mb-1 text-body-secondary small">${escapeHtml(project.description)}</p>` : ''}
+				<div class="col-sm-6 col-lg-4 col-xl-3">
+					<div class="card h-100 project-card shadow-sm border" data-project-link="${project.id}">
+						<div class="card-body d-flex flex-column">
+							<h5 class="card-title mb-2">${escapeHtml(project.title)}</h5>
+							${project.description ? `<p class="card-text text-body-secondary small flex-grow-1">${escapeHtml(project.description)}</p>` : '<div class="flex-grow-1"></div>'}
+							<div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+								<small class="text-body-secondary">
+									<i class="bi bi-calendar3"></i> ${formatDate(project.created_at)}
+								</small>
+								<a href="/projects/${project.id}" class="btn btn-sm btn-outline-primary" data-project-btn="${project.id}">
+									View <i class="bi bi-arrow-right"></i>
+								</a>
+							</div>
 						</div>
-						<small class="text-body-secondary">${formatDate(project.created_at)}</small>
 					</div>
-				</a>
+				</div>
 			`).join('')}
 		</div>
 	`;
 
-	// Add click handlers for project links
+	// Add click handlers for project cards
 	projects.forEach(project => {
-		const link = container.querySelector(`[data-project-link="${project.id}"]`);
-		if (link) {
-			link.addEventListener('click', (e) => {
+		const card = container.querySelector(`[data-project-link="${project.id}"]`);
+		const btn = container.querySelector(`[data-project-btn="${project.id}"]`);
+		
+		if (card) {
+			card.style.cursor = 'pointer';
+			card.addEventListener('click', (e) => {
+				// Don't navigate if clicking the button
+				if (e.target.closest('[data-project-btn]')) return;
 				e.preventDefault();
+				redirectTo(`/projects/${project.id}`);
+			});
+		}
+		
+		if (btn) {
+			btn.addEventListener('click', (e) => {
+				e.preventDefault();
+				e.stopPropagation();
 				redirectTo(`/projects/${project.id}`);
 			});
 		}

@@ -2,11 +2,22 @@
   letter-spacing: 0.2px;
 }
 
-[data-projects-list] .list-group-item {
-  transition: all 0.2s ease;
+.project-card {
+  transition: all 0.3s ease;
+  border-radius: 0.5rem;
 }
 
-[data-projects-list] .list-group-item:hover {
-  transform: translateX(4px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.project-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+.project-card .card-title {
+  font-weight: 600;
+  color: #212529;
+}
+
+.project-card .card-text {
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
