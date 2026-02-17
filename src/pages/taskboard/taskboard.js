@@ -465,10 +465,12 @@ function openTaskModal({ stageId = null, taskId = null } = {}) {
 	const titleInput = document.getElementById('task-title-input');
 	const descriptionInput = document.getElementById('task-description-input');
 	const stageInput = document.getElementById('task-stage-input');
+	const statusOpenRadio = document.getElementById('task-status-open');
+	const statusDoneRadio = document.getElementById('task-status-done');
 	const modalTitle = document.getElementById('task-modal-title');
 	const submitButton = document.getElementById('task-submit-button');
 
-	if (!taskIdInput || !titleInput || !descriptionInput || !stageInput || !modalTitle || !submitButton || !state.taskModal) {
+	if (!taskIdInput || !titleInput || !descriptionInput || !stageInput || !statusOpenRadio || !statusDoneRadio || !modalTitle || !submitButton || !state.taskModal) {
 		return;
 	}
 
@@ -482,6 +484,11 @@ function openTaskModal({ stageId = null, taskId = null } = {}) {
 		titleInput.value = task.title ?? '';
 		descriptionInput.value = task.description ?? '';
 		stageInput.value = task.stage_id ?? '';
+		if (task.done) {
+			statusDoneRadio.checked = true;
+		} else {
+			statusOpenRadio.checked = true;
+		}
 		modalTitle.textContent = 'Edit Task';
 		submitButton.textContent = 'Save Changes';
 	} else {
@@ -489,6 +496,7 @@ function openTaskModal({ stageId = null, taskId = null } = {}) {
 		titleInput.value = '';
 		descriptionInput.value = '';
 		stageInput.value = stageId ?? state.stages[0]?.id ?? '';
+		statusOpenRadio.checked = true;
 		modalTitle.textContent = 'Create Task';
 		submitButton.textContent = 'Create Task';
 	}
@@ -510,9 +518,10 @@ async function handleTaskSubmit(event) {
 	const titleInput = document.getElementById('task-title-input');
 	const descriptionInput = document.getElementById('task-description-input');
 	const stageInput = document.getElementById('task-stage-input');
+	const statusDoneRadio = document.getElementById('task-status-done');
 	const submitButton = document.getElementById('task-submit-button');
 
-	if (!taskIdInput || !titleInput || !descriptionInput || !stageInput || !submitButton) {
+	if (!taskIdInput || !titleInput || !descriptionInput || !stageInput || !statusDoneRadio || !submitButton) {
 		return;
 	}
 
@@ -520,6 +529,7 @@ async function handleTaskSubmit(event) {
 	const title = titleInput.value.trim();
 	const description = descriptionInput.value.trim();
 	const stageId = stageInput.value;
+	const done = statusDoneRadio.checked;
 
 	if (!title || !stageId || !state.projectId) {
 		return;
@@ -529,7 +539,7 @@ async function handleTaskSubmit(event) {
 
 	try {
 		if (taskId) {
-			await updateTask(taskId, { title, description, stageId });
+			await updateTask(taskId, { title, description, stageId, done });
 		} else {
 			await createTask({ title, description, stageId });
 		}
@@ -565,7 +575,7 @@ async function createTask({ title, description, stageId }) {
 	}
 }
 
-async function updateTask(taskId, { title, description, stageId }) {
+async function updateTask(taskId, { title, description, stageId, done }) {
 	const existingTask = state.tasks.find(task => task.id === taskId);
 	if (!existingTask) {
 		throw new Error('Task not found');
@@ -582,7 +592,8 @@ async function updateTask(taskId, { title, description, stageId }) {
 			title,
 			description: description || null,
 			stage_id: stageId,
-			position: nextPosition
+			position: nextPosition,
+			done: done ?? existingTask.done
 		})
 		.eq('id', taskId)
 		.eq('project_id', state.projectId);

@@ -46,9 +46,22 @@
               <label for="task-description-input" class="form-label">Description</label>
               <textarea class="form-control" id="task-description-input" rows="3" maxlength="1000"></textarea>
             </div>
-            <div>
+            <div class="mb-3">
               <label for="task-stage-input" class="form-label">Stage</label>
               <select class="form-select" id="task-stage-input" required></select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Status</label>
+              <div class="btn-group w-100" role="group" aria-label="Task status">
+                <input type="radio" class="btn-check" name="task-status" id="task-status-open" value="open" required />
+                <label class="btn btn-outline-primary" for="task-status-open">
+                  <i class="bi bi-circle"></i> Open
+                </label>
+                <input type="radio" class="btn-check" name="task-status" id="task-status-done" value="done" />
+                <label class="btn btn-outline-success" for="task-status-done">
+                  <i class="bi bi-check-circle"></i> Done (closed)
+                </label>
+              </div>
             </div>
           </div>
           <div class="modal-footer">
