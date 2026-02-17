@@ -120,7 +120,7 @@ async function loadTaskboard(projectId) {
 			.order('position', { ascending: true });
 
 		if (tasksError) throw tasksError;
-		state.tasks = tasks ?? [];
+		state.tasks = await enrichTasksWithCoverImages(tasks ?? []);
 
 		const boardHtml = state.stages.map(stage => {
 			const stageTasks = state.tasks.filter(task => task.stage_id === stage.id);
@@ -142,6 +142,7 @@ function renderStage(stage, tasks) {
 	const tasksHtml = tasks.length > 0
 		? tasks.map(task => `
 			<div class="task-card" data-task-id="${task.id}" draggable="true">
+				${task.coverImageUrl ? `<img class="task-cover-image" src="${escapeHtml(task.coverImageUrl)}" alt="${escapeHtml(task.title || 'Task cover')}" loading="lazy">` : ''}
 				<div class="task-card-actions">
 					<button class="btn btn-light border task-action-btn" type="button" data-action="edit-task" data-task-id="${task.id}" aria-label="Edit task" title="Edit">
 						<i class="bi bi-pencil"></i>
@@ -174,6 +175,68 @@ function renderStage(stage, tasks) {
 			</div>
 		</div>
 	`;
+}
+
+async function enrichTasksWithCoverImages(tasks) {
+	if (!tasks || tasks.length === 0) {
+		return [];
+	}
+
+	const taskIds = tasks.map(task => task.id).filter(Boolean);
+	if (taskIds.length === 0) {
+		return tasks;
+	}
+
+	const { data: imageAttachments, error } = await supabase
+		.from('task_attachments')
+		.select('task_id, bucket_id, storage_path, created_at')
+		.in('task_id', taskIds)
+		.like('mime_type', 'image/%')
+		.order('created_at', { ascending: true });
+
+	if (error) {
+		if (error.code === '42P01') {
+			return tasks;
+		}
+
+		throw error;
+	}
+
+	const firstImageByTaskId = new Map();
+	for (const attachment of imageAttachments ?? []) {
+		if (!attachment.task_id || !attachment.storage_path || firstImageByTaskId.has(attachment.task_id)) {
+			continue;
+		}
+
+		firstImageByTaskId.set(attachment.task_id, attachment);
+	}
+
+	if (firstImageByTaskId.size === 0) {
+		return tasks;
+	}
+
+	const signedUrlByTaskId = new Map();
+	const signedUrlResults = await Promise.all(
+		Array.from(firstImageByTaskId.entries()).map(async ([taskId, attachment]) => {
+			const { data: signedUrlData } = await supabase.storage
+				.from(attachment.bucket_id || TASK_ATTACHMENTS_BUCKET)
+				.createSignedUrl(attachment.storage_path, 60 * 30);
+
+			return {
+				taskId,
+				signedUrl: signedUrlData?.signedUrl ?? null
+			};
+		})
+	);
+
+	for (const { taskId, signedUrl } of signedUrlResults) {
+		signedUrlByTaskId.set(taskId, signedUrl);
+	}
+
+	return tasks.map(task => ({
+		...task,
+		coverImageUrl: signedUrlByTaskId.get(task.id) ?? null
+	}));
 }
 
 function setupTaskInteractions() {
