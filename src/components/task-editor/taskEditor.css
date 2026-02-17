@@ -1,0 +1,73 @@
+.task-attachments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.task-attachment-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.task-attachment-preview {
+  width: 44px;
+  height: 44px;
+  border-radius: 0.375rem;
+  background-color: var(--bs-tertiary-bg);
+  border: 1px solid var(--bs-border-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.task-attachment-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.task-attachment-preview i {
+  font-size: 1.2rem;
+  color: var(--bs-secondary-color);
+}
+
+.task-attachment-meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.task-attachment-name {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--bs-body-color);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-attachment-name:hover {
+  text-decoration: underline;
+}
+
+.task-attachment-size {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--bs-secondary-color);
+}
+
+.task-attachments-empty {
+  border: 1px dashed var(--bs-border-color);
+  color: var(--bs-secondary-color);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  padding: 0.75rem;
+  text-align: center;
+}

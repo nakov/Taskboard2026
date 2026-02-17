@@ -1,12 +1,15 @@
 import taskboardTemplate from './taskboard.html?raw';
 import taskboardStyles from './taskboard.css?raw';
 import { supabase } from '../../lib/supabaseClient';
+import { createTaskEditor, renderTaskEditor } from '../../components/task-editor/taskEditor';
+
+const TASK_ATTACHMENTS_BUCKET = 'task-attachments';
 
 const state = {
 	projectId: null,
 	stages: [],
 	tasks: [],
-	taskModal: null,
+	taskEditor: null,
 	deleteModal: null,
 	pendingDeleteTaskId: null,
 	handlersBound: false,
@@ -26,7 +29,7 @@ const redirectTo = (path, { replace = false } = {}) => {
 };
 
 export const renderTaskboardPage = () => {
-	return `<style>${taskboardStyles}</style>${taskboardTemplate}`;
+	return `<style>${taskboardStyles}</style>${taskboardTemplate.replace('{{taskEditorModal}}', renderTaskEditor())}`;
 };
 
 export const initTaskboardPage = async (projectId) => {
@@ -35,7 +38,7 @@ export const initTaskboardPage = async (projectId) => {
 	state.tasks = [];
 	state.pendingDeleteTaskId = null;
 	state.handlersBound = false;
-	state.taskModal = null;
+	state.taskEditor = null;
 	state.deleteModal = null;
 	state.draggedTaskId = null;
 	state.suppressCardClick = false;
@@ -103,7 +106,10 @@ async function loadTaskboard(projectId) {
 					No stages created yet. Create a stage to get started.
 				</div>
 			`;
-			populateStageSelect();
+
+			if (state.taskEditor) {
+				state.taskEditor.updateStageOptions([]);
+			}
 			return;
 		}
 
@@ -122,7 +128,10 @@ async function loadTaskboard(projectId) {
 		}).join('');
 
 		document.getElementById('taskboard-stages').innerHTML = boardHtml;
-		populateStageSelect();
+
+		if (state.taskEditor) {
+			state.taskEditor.updateStageOptions(state.stages);
+		}
 	} catch (error) {
 		console.error('Error loading taskboard:', error);
 		showError('Failed to load taskboard');
@@ -169,14 +178,21 @@ function renderStage(stage, tasks) {
 
 function setupTaskInteractions() {
 	const board = document.getElementById('taskboard-stages');
-	const taskForm = document.getElementById('task-form');
 	const deleteConfirmButton = document.getElementById('confirm-delete-task');
 
-	if (!board || !taskForm || !deleteConfirmButton || state.handlersBound) {
+	if (!board || !deleteConfirmButton || state.handlersBound) {
 		return;
 	}
 
-	state.taskModal = new window.bootstrap.Modal(document.getElementById('task-modal'));
+	state.taskEditor = createTaskEditor({
+		onSubmit: handleTaskEditorSubmit
+	});
+
+	if (!state.taskEditor) {
+		showError('Task editor could not be initialized');
+		return;
+	}
+
 	state.deleteModal = new window.bootstrap.Modal(document.getElementById('delete-task-modal'));
 
 	board.addEventListener('click', handleBoardClick);
@@ -185,7 +201,6 @@ function setupTaskInteractions() {
 	board.addEventListener('dragleave', handleDragLeave);
 	board.addEventListener('drop', handleDrop);
 	board.addEventListener('dragend', handleDragEnd);
-	taskForm.addEventListener('submit', handleTaskSubmit);
 	deleteConfirmButton.addEventListener('click', handleTaskDeleteConfirm);
 
 	state.handlersBound = true;
@@ -208,13 +223,13 @@ function handleBoardClick(event) {
 
 		if (action === 'create-task') {
 			const stageId = actionButton.getAttribute('data-stage-id');
-			openTaskModal({ stageId });
+			void openTaskModal({ stageId });
 		}
 
 		if (action === 'edit-task') {
 			const taskId = actionButton.getAttribute('data-task-id');
 			if (taskId) {
-				openTaskModal({ taskId });
+				void openTaskModal({ taskId });
 			}
 		}
 
@@ -232,7 +247,7 @@ function handleBoardClick(event) {
 	if (card) {
 		const taskId = card.getAttribute('data-task-id');
 		if (taskId) {
-			openTaskModal({ taskId });
+			void openTaskModal({ taskId });
 		}
 	}
 }
@@ -460,17 +475,8 @@ async function persistTaskOrderFromDom() {
 	}
 }
 
-function openTaskModal({ stageId = null, taskId = null } = {}) {
-	const taskIdInput = document.getElementById('task-id');
-	const titleInput = document.getElementById('task-title-input');
-	const descriptionInput = document.getElementById('task-description-input');
-	const stageInput = document.getElementById('task-stage-input');
-	const statusOpenRadio = document.getElementById('task-status-open');
-	const statusDoneRadio = document.getElementById('task-status-done');
-	const modalTitle = document.getElementById('task-modal-title');
-	const submitButton = document.getElementById('task-submit-button');
-
-	if (!taskIdInput || !titleInput || !descriptionInput || !stageInput || !statusOpenRadio || !statusDoneRadio || !modalTitle || !submitButton || !state.taskModal) {
+async function openTaskModal({ stageId = null, taskId = null } = {}) {
+	if (!state.taskEditor) {
 		return;
 	}
 
@@ -480,28 +486,18 @@ function openTaskModal({ stageId = null, taskId = null } = {}) {
 			return;
 		}
 
-		taskIdInput.value = task.id;
-		titleInput.value = task.title ?? '';
-		descriptionInput.value = task.description ?? '';
-		stageInput.value = task.stage_id ?? '';
-		if (task.done) {
-			statusDoneRadio.checked = true;
-		} else {
-			statusOpenRadio.checked = true;
-		}
-		modalTitle.textContent = 'Edit Task';
-		submitButton.textContent = 'Save Changes';
+		const attachments = await loadTaskAttachments(taskId);
+		state.taskEditor.openEdit({
+			task,
+			stages: state.stages,
+			attachments
+		});
 	} else {
-		taskIdInput.value = '';
-		titleInput.value = '';
-		descriptionInput.value = '';
-		stageInput.value = stageId ?? state.stages[0]?.id ?? '';
-		statusOpenRadio.checked = true;
-		modalTitle.textContent = 'Create Task';
-		submitButton.textContent = 'Create Task';
+		state.taskEditor.openCreate({
+			stageId: stageId ?? state.stages[0]?.id ?? '',
+			stages: state.stages
+		});
 	}
-
-	state.taskModal.show();
 }
 
 function openDeleteModal(taskId) {
@@ -511,55 +507,39 @@ function openDeleteModal(taskId) {
 	}
 }
 
-async function handleTaskSubmit(event) {
-	event.preventDefault();
-
-	const taskIdInput = document.getElementById('task-id');
-	const titleInput = document.getElementById('task-title-input');
-	const descriptionInput = document.getElementById('task-description-input');
-	const stageInput = document.getElementById('task-stage-input');
-	const statusDoneRadio = document.getElementById('task-status-done');
-	const submitButton = document.getElementById('task-submit-button');
-
-	if (!taskIdInput || !titleInput || !descriptionInput || !stageInput || !statusDoneRadio || !submitButton) {
-		return;
-	}
-
-	const taskId = taskIdInput.value.trim();
-	const title = titleInput.value.trim();
-	const description = descriptionInput.value.trim();
-	const stageId = stageInput.value;
-	const done = statusDoneRadio.checked;
-
+async function handleTaskEditorSubmit({ taskId, title, description, stageId, done, newFiles, removeAttachmentIds }) {
 	if (!title || !stageId || !state.projectId) {
-		return;
+		return false;
 	}
-
-	submitButton.disabled = true;
 
 	try {
+		let persistedTaskId = taskId;
+
 		if (taskId) {
 			await updateTask(taskId, { title, description, stageId, done });
 		} else {
-			await createTask({ title, description, stageId });
+			persistedTaskId = await createTask({ title, description, stageId });
 		}
 
-		if (state.taskModal) {
-			state.taskModal.hide();
+		if (persistedTaskId) {
+			await processTaskAttachments(persistedTaskId, {
+				removeAttachmentIds,
+				newFiles
+			});
 		}
 
 		await loadTaskboard(state.projectId);
+		return true;
 	} catch (error) {
 		console.error('Error saving task:', error);
 		window.alert('Failed to save task. Please try again.');
-	} finally {
-		submitButton.disabled = false;
+		return false;
 	}
 }
 
 async function createTask({ title, description, stageId }) {
 	const stageTaskCount = state.tasks.filter(task => task.stage_id === stageId).length;
-	const { error } = await supabase
+	const { data: createdTask, error } = await supabase
 		.from('tasks')
 		.insert({
 			project_id: state.projectId,
@@ -568,11 +548,15 @@ async function createTask({ title, description, stageId }) {
 			description: description || null,
 			position: stageTaskCount,
 			done: false
-		});
+		})
+		.select('id')
+		.single();
 
 	if (error) {
 		throw error;
 	}
+
+	return createdTask?.id ?? null;
 }
 
 async function updateTask(taskId, { title, description, stageId, done }) {
@@ -615,6 +599,8 @@ async function handleTaskDeleteConfirm() {
 	}
 
 	try {
+		await removeAllTaskAttachments(taskId);
+
 		const { error } = await supabase
 			.from('tasks')
 			.delete()
@@ -640,15 +626,214 @@ async function handleTaskDeleteConfirm() {
 	}
 }
 
-function populateStageSelect() {
-	const stageInput = document.getElementById('task-stage-input');
-	if (!stageInput) {
+async function loadTaskAttachments(taskId) {
+	if (!taskId) {
+		return [];
+	}
+
+	const { data, error } = await supabase
+		.from('task_attachments')
+		.select('id, task_id, bucket_id, storage_path, file_name, mime_type, size_bytes, created_at')
+		.eq('task_id', taskId)
+		.order('created_at', { ascending: true });
+
+	if (error) {
+		if (error.code === '42P01') {
+			return [];
+		}
+
+		throw error;
+	}
+
+	const attachments = data ?? [];
+	if (attachments.length === 0) {
+		return [];
+	}
+
+	const signedUrlsByPath = new Map();
+	const createUrlResults = await Promise.all(
+		attachments.map(async (attachment) => {
+			if (!attachment.storage_path) {
+				return { path: null, signedUrl: null };
+			}
+
+			const { data: signedUrlData } = await supabase.storage
+				.from(attachment.bucket_id || TASK_ATTACHMENTS_BUCKET)
+				.createSignedUrl(attachment.storage_path, 60 * 30);
+
+			return {
+				path: attachment.storage_path,
+				signedUrl: signedUrlData?.signedUrl ?? null
+			};
+		})
+	);
+
+	for (const result of createUrlResults) {
+		if (result.path) {
+			signedUrlsByPath.set(result.path, result.signedUrl);
+		}
+	}
+
+	return attachments.map((attachment) => {
+		const previewUrl = signedUrlsByPath.get(attachment.storage_path) ?? null;
+		const isImage = typeof attachment.mime_type === 'string' && attachment.mime_type.startsWith('image/');
+
+		return {
+			id: attachment.id,
+			source: 'existing',
+			name: attachment.file_name,
+			size: attachment.size_bytes,
+			isImage,
+			previewUrl: isImage ? previewUrl : null,
+			downloadUrl: previewUrl
+		};
+	});
+}
+
+async function processTaskAttachments(taskId, { newFiles = [], removeAttachmentIds = [] } = {}) {
+	if (!taskId) {
 		return;
 	}
 
-	stageInput.innerHTML = state.stages
-		.map(stage => `<option value="${stage.id}">${escapeHtml(stage.name)}</option>`)
-		.join('');
+	if (removeAttachmentIds.length > 0) {
+		const { data: attachmentsToRemove, error: removeLookupError } = await supabase
+			.from('task_attachments')
+			.select('id, bucket_id, storage_path')
+			.eq('task_id', taskId)
+			.in('id', removeAttachmentIds);
+
+		if (removeLookupError) {
+			throw removeLookupError;
+		}
+
+		if (attachmentsToRemove && attachmentsToRemove.length > 0) {
+			const byBucket = new Map();
+			for (const attachment of attachmentsToRemove) {
+				const bucket = attachment.bucket_id || TASK_ATTACHMENTS_BUCKET;
+				const existing = byBucket.get(bucket) ?? [];
+				if (attachment.storage_path) {
+					existing.push(attachment.storage_path);
+				}
+				byBucket.set(bucket, existing);
+			}
+
+			for (const [bucket, paths] of byBucket.entries()) {
+				if (paths.length === 0) {
+					continue;
+				}
+
+				const { error: storageDeleteError } = await supabase.storage
+					.from(bucket)
+					.remove(paths);
+
+				if (storageDeleteError) {
+					throw storageDeleteError;
+				}
+			}
+
+			const { error: deleteRowsError } = await supabase
+				.from('task_attachments')
+				.delete()
+				.eq('task_id', taskId)
+				.in('id', attachmentsToRemove.map((attachment) => attachment.id));
+
+			if (deleteRowsError) {
+				throw deleteRowsError;
+			}
+		}
+	}
+
+	if (newFiles.length === 0) {
+		return;
+	}
+
+	for (const file of newFiles) {
+		const fileName = file?.name || 'attachment';
+		const sanitizedName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+		const storagePath = `${taskId}/${crypto.randomUUID()}_${sanitizedName}`;
+
+		const { error: uploadError } = await supabase.storage
+			.from(TASK_ATTACHMENTS_BUCKET)
+			.upload(storagePath, file, {
+				upsert: false,
+				contentType: file.type || undefined
+			});
+
+		if (uploadError) {
+			throw uploadError;
+		}
+
+		const { error: insertAttachmentError } = await supabase
+			.from('task_attachments')
+			.insert({
+				task_id: taskId,
+				bucket_id: TASK_ATTACHMENTS_BUCKET,
+				storage_path: storagePath,
+				file_name: fileName,
+				mime_type: file.type || null,
+				size_bytes: typeof file.size === 'number' ? file.size : null
+			});
+
+		if (insertAttachmentError) {
+			throw insertAttachmentError;
+		}
+	}
+}
+
+async function removeAllTaskAttachments(taskId) {
+	if (!taskId) {
+		return;
+	}
+
+	const { data: attachments, error } = await supabase
+		.from('task_attachments')
+		.select('id, bucket_id, storage_path')
+		.eq('task_id', taskId);
+
+	if (error) {
+		if (error.code === '42P01') {
+			return;
+		}
+
+		throw error;
+	}
+
+	if (!attachments || attachments.length === 0) {
+		return;
+	}
+
+	const byBucket = new Map();
+	for (const attachment of attachments) {
+		const bucket = attachment.bucket_id || TASK_ATTACHMENTS_BUCKET;
+		const existing = byBucket.get(bucket) ?? [];
+		if (attachment.storage_path) {
+			existing.push(attachment.storage_path);
+		}
+		byBucket.set(bucket, existing);
+	}
+
+	for (const [bucket, paths] of byBucket.entries()) {
+		if (paths.length === 0) {
+			continue;
+		}
+
+		const { error: removeStorageError } = await supabase.storage
+			.from(bucket)
+			.remove(paths);
+
+		if (removeStorageError) {
+			throw removeStorageError;
+		}
+	}
+
+	const { error: deleteRowsError } = await supabase
+		.from('task_attachments')
+		.delete()
+		.eq('task_id', taskId);
+
+	if (deleteRowsError) {
+		throw deleteRowsError;
+	}
 }
 
 function showError(message) {

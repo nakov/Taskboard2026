@@ -28,50 +28,7 @@
     <strong>Error:</strong> <span id="error-text"></span>
   </div>
 
-  <div class="modal fade" id="task-modal" tabindex="-1" aria-labelledby="task-modal-title" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="task-modal-title">Create Task</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <form id="task-form">
-          <div class="modal-body">
-            <input type="hidden" id="task-id" />
-            <div class="mb-3">
-              <label for="task-title-input" class="form-label">Title</label>
-              <input type="text" class="form-control" id="task-title-input" maxlength="120" required />
-            </div>
-            <div class="mb-3">
-              <label for="task-description-input" class="form-label">Description</label>
-              <textarea class="form-control" id="task-description-input" rows="3" maxlength="1000"></textarea>
-            </div>
-            <div class="mb-3">
-              <label for="task-stage-input" class="form-label">Stage</label>
-              <select class="form-select" id="task-stage-input" required></select>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Status</label>
-              <div class="btn-group w-100" role="group" aria-label="Task status">
-                <input type="radio" class="btn-check" name="task-status" id="task-status-open" value="open" required />
-                <label class="btn btn-outline-primary" for="task-status-open">
-                  <i class="bi bi-circle"></i> Open
-                </label>
-                <input type="radio" class="btn-check" name="task-status" id="task-status-done" value="done" />
-                <label class="btn btn-outline-success" for="task-status-done">
-                  <i class="bi bi-check-circle"></i> Done (closed)
-                </label>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary" id="task-submit-button">Save Task</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
+  {{taskEditorModal}}
 
   <div class="modal fade" id="delete-task-modal" tabindex="-1" aria-labelledby="delete-task-modal-title" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
