@@ -54,18 +54,12 @@ export const initTaskboardPage = async (projectId) => {
 		// Load project details
 		const { data: project, error: projectError } = await supabase
 			.from('projects')
-			.select('id, title, description, owner_id, created_at')
+			.select('id, title, description, created_at')
 			.eq('id', projectId)
 			.single();
 
 		if (projectError || !project) {
 			showError('Project not found');
-			return;
-		}
-
-		// Check if user is the project owner
-		if (project.owner_id !== data.session.user.id) {
-			showError('You do not have permission to view this project');
 			return;
 		}
 

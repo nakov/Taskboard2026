@@ -1,6 +1,7 @@
 import editTemplate from './edit.html?raw';
 import editStyles from './edit.css?raw';
 import { supabase } from '../../../lib/supabaseClient';
+import { createProjectMembersManager } from '../projectMembers';
 
 const redirectTo = (path, { replace = false } = {}) => {
 	if (replace) {
@@ -45,14 +46,20 @@ async function loadProject(projectId, userId) {
 			return;
 		}
 
-		// Check if user is the owner
 		if (project.owner_id !== userId) {
-			showErrorMessage('You do not have permission to edit this project');
+			showErrorMessage('Only the project owner can edit project details');
 			return;
 		}
 
+		const { data: memberRows, error: membersError } = await supabase
+			.from('project_members')
+			.select('user_id')
+			.eq('project_id', projectId);
+
+		if (membersError) throw membersError;
+
 		// Show form and populate fields
-		showForm(project, userId);
+		showForm(project, userId, (memberRows || []).map(row => row.user_id));
 	} catch (error) {
 		console.error('Error loading project:', error);
 		showErrorMessage('Failed to load project');
@@ -72,7 +79,7 @@ function showErrorMessage(message) {
 	}
 }
 
-function showForm(project, userId) {
+function showForm(project, currentUserId, initialMemberUserIds) {
 	const loadingDiv = document.querySelector('#edit-loading');
 	const formContent = document.querySelector('#edit-form-content');
 	const titleInput = document.querySelector('#project-title');
@@ -88,6 +95,11 @@ function showForm(project, userId) {
 	const errorAlert = document.querySelector('#edit-project-error');
 	const successAlert = document.querySelector('#edit-project-success');
 	const submitBtn = document.querySelector('#edit-submit-btn');
+	const membersManager = createProjectMembersManager({
+		rootSelector: '#project-members-section',
+		currentUserId,
+		initialSelectedUserIds: initialMemberUserIds
+	});
 
 	if (!form) return;
 
@@ -146,6 +158,40 @@ function showForm(project, userId) {
 				.eq('id', project.id);
 
 			if (error) throw error;
+
+			const selectedMemberIds = membersManager?.getSelectedUserIds() || [];
+
+			const { data: currentMemberRows, error: currentMembersError } = await supabase
+				.from('project_members')
+				.select('user_id')
+				.eq('project_id', project.id);
+
+			if (currentMembersError) throw currentMembersError;
+
+			const currentMemberIds = (currentMemberRows || []).map((row) => row.user_id);
+			const memberIdsToAdd = selectedMemberIds.filter((memberId) => !currentMemberIds.includes(memberId));
+			const memberIdsToRemove = currentMemberIds.filter((memberId) => !selectedMemberIds.includes(memberId));
+
+			if (memberIdsToAdd.length > 0) {
+				const { error: addMembersError } = await supabase
+					.from('project_members')
+					.insert(memberIdsToAdd.map((memberId) => ({
+						project_id: project.id,
+						user_id: memberId
+					})));
+
+				if (addMembersError) throw addMembersError;
+			}
+
+			if (memberIdsToRemove.length > 0) {
+				const { error: removeMembersError } = await supabase
+					.from('project_members')
+					.delete()
+					.eq('project_id', project.id)
+					.in('user_id', memberIdsToRemove);
+
+				if (removeMembersError) throw removeMembersError;
+			}
 
 			setAlert(successAlert, 'Project updated successfully!', false);
 

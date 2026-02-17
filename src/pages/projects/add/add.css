@@ -37,6 +37,12 @@ textarea.form-control {
   margin-right: 0.5rem;
 }
 
+#project-member-results,
+#project-members-selected {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
 /* Alerts */
 .alert {
   border-radius: 0.375rem;

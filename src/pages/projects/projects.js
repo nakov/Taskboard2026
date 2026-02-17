@@ -142,17 +142,21 @@ function renderProjectsTable(projects, currentUserId) {
 									   data-link>
 										<i class="bi bi-eye"></i>
 									</a>
-								<a href="/projects/${project.id}/edit" 
-									   class="btn btn-outline-secondary" 
-									   title="Edit project"
-									   data-link>
-										<i class="bi bi-pencil"></i>
-									</a>
-									<button class="btn btn-outline-danger" 
-									        title="Delete project"
-									        data-delete-project="${project.id}">
-										<i class="bi bi-trash"></i>
-									</button>
+									${project.owner_id === currentUserId ? `
+										<a href="/projects/${project.id}/edit" 
+										   class="btn btn-outline-secondary" 
+										   title="Edit project"
+										   data-link>
+											<i class="bi bi-pencil"></i>
+										</a>
+									` : ''}
+									${project.owner_id === currentUserId ? `
+										<button class="btn btn-outline-danger" 
+										        title="Delete project"
+										        data-delete-project="${project.id}">
+											<i class="bi bi-trash"></i>
+										</button>
+									` : ''}
 								</div>
 							</td>
 						</tr>

@@ -31,6 +31,26 @@
         <small class="form-text text-body-secondary">Provide additional context about this project</small>
       </div>
 
+      <div class="mb-4" id="project-members-section">
+        <label for="project-member-search" class="form-label">Project Members</label>
+        <div class="input-group">
+          <input
+            type="text"
+            class="form-control"
+            id="project-member-search"
+            placeholder="Search users by name or email"
+            autocomplete="off">
+          <button type="button" class="btn btn-outline-primary" id="project-member-add-btn" disabled>
+            <i class="bi bi-plus-lg"></i> Add
+          </button>
+        </div>
+        <small class="form-text text-body-secondary">Choose members who should access this project</small>
+        <div id="project-member-results" class="list-group mt-2 d-none"></div>
+        <div id="project-members-error" class="alert alert-danger mt-3 d-none" role="alert"></div>
+        <div class="list-group mt-3" id="project-members-selected"></div>
+        <div id="project-members-empty" class="small text-body-secondary mt-2">No members added yet.</div>
+      </div>
+
       <div id="add-project-error" class="alert alert-danger d-none" role="alert"></div>
       <div id="add-project-success" class="alert alert-success d-none" role="alert"></div>
 

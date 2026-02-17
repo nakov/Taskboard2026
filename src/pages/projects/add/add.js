@@ -1,6 +1,7 @@
 import addTemplate from './add.html?raw';
 import addStyles from './add.css?raw';
 import { supabase } from '../../../lib/supabaseClient';
+import { createProjectMembersManager } from '../projectMembers';
 
 const redirectTo = (path, { replace = false } = {}) => {
 	if (replace) {
@@ -23,16 +24,20 @@ export const initAddProjectPage = async () => {
 		return;
 	}
 
-	setupForm();
+	setupForm(data.session.user.id);
 };
 
-function setupForm() {
+function setupForm(currentUserId) {
 	const form = document.querySelector('#add-project-form');
 	const titleInput = document.querySelector('#project-title');
 	const descriptionInput = document.querySelector('#project-description');
 	const errorAlert = document.querySelector('#add-project-error');
 	const successAlert = document.querySelector('#add-project-success');
 	const submitBtn = document.querySelector('#add-submit-btn');
+	const membersManager = createProjectMembersManager({
+		rootSelector: '#project-members-section',
+		currentUserId
+	});
 
 	if (!form) return;
 
@@ -94,27 +99,40 @@ function setupForm() {
 				throw new Error('User not authenticated');
 			}
 
-			const { data, error } = await supabase
+			const projectId = crypto.randomUUID();
+
+			const { error } = await supabase
 				.from('projects')
 				.insert([
 					{
+						id: projectId,
 						title,
 						description: description || null,
 						owner_id: user.id
 					}
-				])
-				.select();
+				]);
 
 			if (error) throw error;
 
-			if (data && data.length > 0) {
-				setAlert(successAlert, 'Project created successfully!', false);
-				
-				// Redirect after a brief delay
-				setTimeout(() => {
-					redirectTo('/projects');
-				}, 800);
+			const memberIds = membersManager?.getSelectedUserIds() || [];
+
+			if (memberIds.length > 0) {
+				const { error: membersError } = await supabase
+					.from('project_members')
+					.insert(memberIds.map((memberId) => ({
+						project_id: projectId,
+						user_id: memberId
+					})));
+
+				if (membersError) throw membersError;
 			}
+
+			setAlert(successAlert, 'Project created successfully!', false);
+			
+			// Redirect after a brief delay
+			setTimeout(() => {
+				redirectTo('/projects');
+			}, 800);
 		} catch (error) {
 			console.error('Error creating project:', error);
 			setAlert(errorAlert, error.message || 'Failed to create project');
