@@ -37,14 +37,15 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 
 ## Database setup
 
-### 1) Apply migration
+### 1) Apply migrations
 
-Run the SQL from:
+Run the SQL scripts from:
 
-- `supabase/migrations/20260212120000_initial_schema.sql`
+- `supabase/migrations/`
+
+Use Supabase MCP or Supabase CLI.
 
 This creates:
-
 - `projects`
 - `project_stages`
 - `tasks`
