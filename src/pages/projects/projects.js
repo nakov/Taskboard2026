@@ -91,7 +91,9 @@ function renderProjectsTable(projects, currentUserId) {
 					${projects.map(project => `
 						<tr data-project-row="${project.id}">
 							<td>
-								<strong>${escapeHtml(project.title)}</strong>
+								<a href="/projects/${project.id}" class="project-title-link" data-link>
+									<strong>${escapeHtml(project.title)}</strong>
+								</a>
 							</td>
 							<td>
 								<span class="text-body-secondary small">
