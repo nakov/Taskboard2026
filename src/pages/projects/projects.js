@@ -35,10 +35,18 @@ async function loadProjects() {
 		const container = document.querySelector('[data-projects-container]');
 		if (!container) return;
 
-		// Fetch projects for current user
+		// Fetch projects with task and stage counts
 		const { data: projects, error } = await supabase
 			.from('projects')
-		.select('id, title, description, owner_id, created_at')
+			.select(`
+				id,
+				title,
+				description,
+				owner_id,
+				created_at,
+				project_stages(count),
+				tasks!tasks_project_id_fkey(done)
+			`)
 
 		if (!projects || projects.length === 0) {
 			container.innerHTML = `
@@ -57,8 +65,23 @@ async function loadProjects() {
 		const { data: sessionData } = await supabase.auth.getSession();
 		const currentUserId = sessionData?.session?.user?.id;
 
+		// Process projects to add computed counts
+		const processedProjects = projects.map(project => {
+			const tasks = project.tasks || [];
+			const openTasks = tasks.filter(t => !t.done).length;
+			const tasksDone = tasks.filter(t => t.done).length;
+			const stageCount = project.project_stages?.[0]?.count || 0;
+
+			return {
+				...project,
+				openTasks,
+				tasksDone,
+				stageCount
+			};
+		});
+
 		// Render projects table
-		renderProjectsTable(projects, currentUserId);
+		renderProjectsTable(processedProjects, currentUserId);
 	} catch (error) {
 		console.error('Error loading projects:', error);
 		const container = document.querySelector('[data-projects-container]');
@@ -83,7 +106,9 @@ function renderProjectsTable(projects, currentUserId) {
 					<tr>
 						<th>Title</th>
 						<th>Description</th>
-						<th>Created</th>
+						<th class="text-center">Stages</th>
+						<th class="text-center">Open Tasks</th>
+						<th class="text-center">Tasks Done</th>
 						<th class="text-end">Actions</th>
 					</tr>
 				</thead>
@@ -100,8 +125,14 @@ function renderProjectsTable(projects, currentUserId) {
 									${project.description ? escapeHtml(project.description) : '—'}
 								</span>
 							</td>
-							<td>
-								<small class="text-body-secondary">${formatDate(project.created_at)}</small>
+							<td class="text-center">
+								<span class="badge bg-secondary">${project.stageCount || 0}</span>
+							</td>
+							<td class="text-center">
+								<span class="badge bg-primary">${project.openTasks || 0}</span>
+							</td>
+							<td class="text-center">
+								<span class="badge bg-success">${project.tasksDone || 0}</span>
 							</td>
 							<td class="text-end">
 								<div class="btn-group btn-group-sm" role="group">
