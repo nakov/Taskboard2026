@@ -1,0 +1,30 @@
+<div class="taskboard-container">
+  <div class="taskboard-header mb-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h1 id="project-title" class="mb-2">Loading...</h1>
+        <p id="project-description" class="text-body-secondary mb-0">—</p>
+      </div>
+      <div>
+        <a href="/projects" class="btn btn-outline-secondary" data-link>
+          <i class="bi bi-arrow-left"></i> Back to Projects
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="taskboard-stages" class="taskboard-board">
+    <!-- Stages and tasks will be rendered here -->
+  </div>
+
+  <div id="loading-indicator" class="text-center py-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading taskboard...</p>
+  </div>
+
+  <div id="error-message" class="alert alert-danger border-danger d-none" role="alert">
+    <strong>Error:</strong> <span id="error-text"></span>
+  </div>
+</div>

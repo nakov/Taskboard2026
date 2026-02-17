@@ -1,0 +1,113 @@
+.taskboard-container {
+  width: 100%;
+}
+
+.taskboard-header {
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 1.5rem;
+}
+
+.taskboard-board {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding: 1rem 0;
+  min-height: 500px;
+}
+
+.taskboard-stage {
+  flex: 0 0 300px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  height: fit-content;
+  min-height: 500px;
+  border: 1px solid #e9ecef;
+}
+
+.taskboard-stage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.taskboard-stage-title {
+  font-weight: 600;
+  margin: 0;
+  color: #212529;
+  font-size: 1rem;
+}
+
+.taskboard-stage-count {
+  background-color: #dee2e6;
+  color: #495057;
+  border-radius: 12px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.taskboard-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.task-card {
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 1rem;
+  cursor: move;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.task-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-color: #0d6efd;
+}
+
+.task-card.dragging {
+  opacity: 0.5;
+}
+
+.task-title {
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+  color: #212529;
+  font-size: 0.95rem;
+}
+
+.task-description {
+  font-size: 0.875rem;
+  color: #6c757d;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.task-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.empty-state i {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}

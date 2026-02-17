@@ -7,6 +7,7 @@ import { renderRegisterPage, initRegisterPage } from './pages/register/register'
 import { renderProjectsPage, initProjectsPage } from './pages/projects/projects';
 import { renderAddProjectPage, initAddProjectPage } from './pages/projects/add/add';
 import { renderEditProjectPage, initEditProjectPage } from './pages/projects/edit/edit';
+import { renderTaskboardPage, initTaskboardPage } from './pages/taskboard/taskboard';
 import { renderNotFoundPage } from './pages/notfound/notfound';
 import { supabase } from './lib/supabaseClient';
 
@@ -83,11 +84,39 @@ const navigateTo = async (appElement, path, { replace = false } = {}) => {
   await renderLayout(appElement, normalizedPath);
 };
 
+const matchDynamicRoute = (path) => {
+  // Match /projects/:id pattern
+  const projectIdMatch = path.match(/^\/projects\/([a-f0-9\-]+)$/);
+  if (projectIdMatch) {
+    return {
+      route: {
+        title: 'Taskboard | Project',
+        render: renderTaskboardPage,
+        init: (session, projectId) => initTaskboardPage(projectId),
+        requiresAuth: true
+      },
+      params: { projectId: projectIdMatch[1] }
+    };
+  }
+
+  return null;
+};
+
 const renderLayout = async (appElement, path) => {
   // Strip query string from path for route matching
   const pathWithoutQuery = path.split('?')[0];
-  const route = routes[pathWithoutQuery];
+  let route = routes[pathWithoutQuery];
+  let params = {};
   const session = await getSession();
+
+  // Try to match dynamic routes
+  if (!route) {
+    const dynamicMatch = matchDynamicRoute(pathWithoutQuery);
+    if (dynamicMatch) {
+      route = dynamicMatch.route;
+      params = dynamicMatch.params;
+    }
+  }
 
   // Handle 404 - unknown route
   if (!route) {
@@ -123,7 +152,12 @@ const renderLayout = async (appElement, path) => {
   `;
 
   if (route.init) {
-    await route.init(session);
+    // For dynamic routes, pass the params to the init function
+    if (params.projectId) {
+      await route.init(session, params.projectId);
+    } else {
+      await route.init(session);
+    }
   }
 };
 
