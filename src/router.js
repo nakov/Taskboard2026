@@ -1,6 +1,6 @@
 import { renderHeader } from './components/header/header';
 import { renderFooter } from './components/footer/footer';
-import { renderIndexPage } from './pages/index/index';
+import { renderIndexPage, initIndexPage } from './pages/index/index';
 import { renderDashboardPage, initDashboardPage } from './pages/dashboard/dashboard';
 import { renderLoginPage, initLoginPage } from './pages/login/login';
 import { renderRegisterPage, initRegisterPage } from './pages/register/register';
@@ -14,7 +14,8 @@ import { supabase } from './lib/supabaseClient';
 const routes = {
   '/': {
     title: 'Taskboard | Home',
-    render: renderIndexPage
+    render: renderIndexPage,
+    init: initIndexPage
   },
   '/dashboard': {
     title: 'Taskboard | Dashboard',

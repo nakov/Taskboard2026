@@ -6,6 +6,14 @@ export const renderHeader = (path, session) => {
   const isLogin = path === '/login';
   const isRegister = path === '/register';
 
+  const dashboardLink = session
+    ? `
+        <li class="nav-item">
+          <a class="nav-link ${isDashboard ? 'active fw-semibold' : ''}" href="/dashboard" data-link>Dashboard</a>
+        </li>
+      `
+    : '';
+
   const authLinks = session
     ? `
         <li class="nav-item">
@@ -23,6 +31,6 @@ export const renderHeader = (path, session) => {
 
   return headerTemplate
     .replace('{{homeActive}}', isHome ? 'active fw-semibold' : '')
-    .replace('{{dashboardActive}}', isDashboard ? 'active fw-semibold' : '')
+    .replace('{{dashboardLink}}', dashboardLink.trim())
     .replace('{{authLinks}}', authLinks.trim());
 };

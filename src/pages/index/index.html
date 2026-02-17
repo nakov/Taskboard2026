@@ -10,9 +10,21 @@
       board as work moves from idea to done.
     </p>
     <div class="index-cta d-flex flex-column flex-sm-row gap-3 align-items-center">
-      <a href="/register" data-link class="btn btn-primary btn-lg">Register</a>
-      <a href="/login" data-link class="btn btn-outline-primary btn-lg">Login</a>
-      <span class="index-note text-body-secondary">Please register / login to get started.</span>
+      <!-- Buttons for non-authenticated users -->
+      <div data-guest-buttons class="d-flex flex-column flex-sm-row gap-3 align-items-center">
+        <a href="/register" data-link class="btn btn-primary btn-lg">Register</a>
+        <a href="/login" data-link class="btn btn-outline-primary btn-lg">Login</a>
+        <span class="index-note text-body-secondary">Please register / login to get started.</span>
+      </div>
+      <!-- Buttons for authenticated users -->
+      <div data-user-buttons class="d-none d-flex flex-column flex-sm-row gap-3 align-items-center">
+        <a href="/dashboard" data-link class="btn btn-primary btn-lg px-5 py-3 fs-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-grid-3x3-gap-fill me-2" viewBox="0 0 16 16">
+            <path d="M1 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM1 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM1 12a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1z"/>
+          </svg>
+          Dashboard
+        </a>
+      </div>
     </div>
   </div>
 </section>
