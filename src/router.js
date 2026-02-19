@@ -8,6 +8,7 @@ import { renderProjectsPage, initProjectsPage } from './pages/projects/projects'
 import { renderAddProjectPage, initAddProjectPage } from './pages/projects/add/add';
 import { renderEditProjectPage, initEditProjectPage } from './pages/projects/edit/edit';
 import { renderTaskboardPage, initTaskboardPage } from './pages/taskboard/taskboard';
+import { renderAdminPage, initAdminPage } from './pages/admin/admin';
 import { renderNotFoundPage } from './pages/notfound/notfound';
 import { supabase } from './lib/supabaseClient';
 
@@ -46,6 +47,13 @@ const routes = {
     render: renderAddProjectPage,
     init: initAddProjectPage,
     requiresAuth: true
+  },
+  '/admin': {
+    title: 'Taskboard | Admin',
+    render: renderAdminPage,
+    init: initAdminPage,
+    requiresAuth: true,
+    requiresAdmin: true
   }
 };
 
@@ -82,6 +90,21 @@ const getSession = async () => {
   }
 
   return data?.session ?? null;
+};
+
+const getIsAdmin = async (session) => {
+  if (!session) {
+    return false;
+  }
+
+  const { data, error } = await supabase.rpc('is_admin');
+
+  if (error) {
+    console.warn('Unable to determine admin status.', error);
+    return false;
+  }
+
+  return Boolean(data);
 };
 
 const navigateTo = async (appElement, path, { replace = false } = {}) => {
@@ -135,6 +158,7 @@ const renderLayout = async (appElement, path) => {
   let route = routes[pathWithoutQuery];
   let params = {};
   const session = await getSession();
+  const isAdmin = await getIsAdmin(session);
 
   // Try to match dynamic routes
   if (!route) {
@@ -149,7 +173,7 @@ const renderLayout = async (appElement, path) => {
   if (!route) {
     document.title = 'Taskboard | 404 Not Found';
     appElement.innerHTML = `
-      ${renderHeader(pathWithoutQuery, session)}
+      ${renderHeader(pathWithoutQuery, session, isAdmin)}
       <main class="container py-4" id="route-content">
         ${renderNotFoundPage()}
       </main>
@@ -168,10 +192,15 @@ const renderLayout = async (appElement, path) => {
     return;
   }
 
+  if (route.requiresAdmin && !isAdmin) {
+    await navigateTo(appElement, '/dashboard', { replace: true });
+    return;
+  }
+
   document.title = route.title;
 
   appElement.innerHTML = `
-    ${renderHeader(pathWithoutQuery, session)}
+    ${renderHeader(pathWithoutQuery, session, isAdmin)}
     <main class="container py-4" id="route-content">
       ${route.render()}
     </main>

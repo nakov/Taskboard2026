@@ -1,8 +1,9 @@
 import headerTemplate from './header.html?raw';
 
-export const renderHeader = (path, session) => {
+export const renderHeader = (path, session, isAdmin = false) => {
   const isHome = path === '/';
   const isDashboard = path === '/dashboard';
+  const isAdminPath = path === '/admin';
   const isLogin = path === '/login';
   const isRegister = path === '/register';
 
@@ -10,6 +11,14 @@ export const renderHeader = (path, session) => {
     ? `
         <li class="nav-item">
           <a class="nav-link ${isDashboard ? 'active fw-semibold' : ''}" href="/dashboard" data-link>Dashboard</a>
+        </li>
+      `
+    : '';
+
+  const adminLink = session && isAdmin
+    ? `
+        <li class="nav-item">
+          <a class="nav-link ${isAdminPath ? 'active fw-semibold' : ''}" href="/admin" data-link>Admin</a>
         </li>
       `
     : '';
@@ -32,5 +41,6 @@ export const renderHeader = (path, session) => {
   return headerTemplate
     .replace('{{homeActive}}', isHome ? 'active fw-semibold' : '')
     .replace('{{dashboardLink}}', dashboardLink.trim())
+    .replace('{{adminLink}}', adminLink.trim())
     .replace('{{authLinks}}', authLinks.trim());
 };

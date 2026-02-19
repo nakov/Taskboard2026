@@ -12,6 +12,7 @@ import './pages/index/index.css';
 import './pages/dashboard/dashboard.css';
 import './pages/login/login.css';
 import './pages/register/register.css';
+import './pages/admin/admin.css';
 
 import { initRouter } from './router';
 

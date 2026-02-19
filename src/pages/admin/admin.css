@@ -1,0 +1,25 @@
+.admin-panel {
+  min-height: 50vh;
+}
+
+.admin-panel .card-header {
+  padding-top: 1.25rem;
+  padding-bottom: 0.75rem;
+}
+
+.admin-panel .table {
+  margin-bottom: 0;
+}
+
+.admin-panel .table td,
+.admin-panel .table th {
+  vertical-align: middle;
+}
+
+.admin-panel .table td small {
+  display: block;
+}
+
+.admin-panel .table .btn {
+  border-radius: 999px;
+}
